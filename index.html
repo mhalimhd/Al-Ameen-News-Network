@@ -1,0 +1,557 @@
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+            <title>شبكة الأمين الإخبارية | Al Ameen News Network</title>
+            <link rel="shortcut icon" href="Logo.png" type="image/x-icon">
+            <script src="translations.js"></script>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/freeps2/Ticker@main/ent-style.css">
+            <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/freeps2/Ticker@main/style.css">
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+            <script src="https://cdn.jsdelivr.net/gh/freeps2/Ticker@main/jquery.easing.js"></script>
+            <script src="https://cdn.jsdelivr.net/gh/freeps2/Ticker@main/ent-script.min.js"></script>
+            <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1377853005015499" crossorigin="anonymous"></script>
+            <link rel="stylesheet" href="styles.css">
+            <link rel="manifest" href="manifest.json">
+            <meta name="theme-color" content="#000000">
+            <script>
+                tailwind.config = {
+                    darkMode: 'class',
+                    theme: {
+                        extend: {
+                            colors: {
+                                appBlack: '#000000',
+                                appDark: '#121212',
+                                appGold: '#C9B55F',
+                                appGoldDim: '#8a7d42',
+                                appGray: '#2A2A2A'
+                            },
+                            fontFamily: {
+                                sans: ['Tajawal', 'sans-serif'],
+                            },
+                            boxShadow: {
+                                'gold-glow': '0 0 15px rgba(201, 181, 95, 0.3)',
+                                'nav-glow': '0 -4px 20px rgba(0,0,0, 0.8)',
+                            }
+                        }
+                    }
+                }
+            </script>
+        </head>
+        <body class="bg-appBlack text-white h-[100dvh] flex flex-col overflow-hidden">
+            <div id="toast-container" class="toast-container">
+                <div class="toast-icon"><i class="fa-solid fa-bell"></i></div>
+                <div>
+                    <h4 class="toast-title" id="toast-title">عاجل</h4>
+                    <p class="toast-body" id="toast-body">نص التنبيه يظهر هنا.</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3 w-full p-4">
+                <div id="header-logo" class="flex items-center gap-2">
+                    <img src="Logo.png" alt="Al Ameen News Network Logo" class="w-16 h-auto">
+                    <div>
+                        <h1 class="text-xl font-bold tracking-wider text-white">
+                            Al Ameen News Network
+                        </h1>
+                        <h2 class="text-lg font-bold tracking-wider text-appGold">
+                            شــبكة الأمين الإخبـــاريـــة
+                        </h2>
+                    </div>
+                </div>
+                <button id="back-btn" onclick="goBack()" class="hidden back-button">
+                    <i class="fa-solid fa-arrow-right"></i>
+                    <span>رجوع</span>
+                </button>
+                <div id="header-clock" class="flex flex-col items-start leading-none mr-3 pr-3 border-r border-white/10">
+                    <span id="hijri-date" class="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider">جاري التحميل...</span>
+                    <span id="date-display" class="text-[10px] sm:text-xs text-gray-400 font-bold uppercase tracking-wider">جاري التحميل...</span>
+                    <span id="time-display" class="text-sm sm:text-base text-appGold font-mono font-bold tracking-wide mt-0.5" dir="ltr">جاري التحميل...</span>
+                </div>
+            </div>
+            <!-- Breaking News Ticker -->
+            <div class="marquee">
+            <div class="marquee__inner" id="marqueeTrack"></div>
+            </div>
+
+            <!-- Main Content -->
+            <main class="main-content" id="main-scroll">
+                <!-- Home Section -->
+                <div id="home" class="view-section active">
+                    <div id="hero-container"></div>
+
+                    <div class="section">
+                        <h3 class="section-title">
+                            <i class="fa-solid fa-rss"></i> آخر الأخبار
+                        </h3>
+                        <div id="feed-container" class="feed-container"></div>
+                    </div>
+
+                </div>
+
+
+<!-- Prayer Times Section -->
+<div id="prayer-times" class="view-section">
+    <div class="location-info">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="prayer-city">هذه أوقات الصلاة بتوقيت بيروت</span>
+    </div>
+    
+    <div id="prayer-loading" class="hidden text-center py-8">
+        <div class="loading-spinner mx-auto mb-4"></div>
+        <p>جاري تحميل أوقات الصلاة...</p>
+    </div>
+    
+    <div id="prayer-error" class="hidden text-center py-8 text-red-400">
+        <p>تعذر تحميل أوقات الصلاة. يرجى المحاولة لاحقاً.</p>
+        <button onclick="loadPrayerTimes()" class="retry-btn mt-4 px-4 py-2 bg-appGold text-black rounded-lg">
+            إعادة المحاولة
+        </button>
+    </div>
+    
+    <div id="prayer-content" class="prayer-content">
+        <div class="prayer-grid" id="prayer-grid">
+            <!-- Imsak (بدون صلاة) -->
+            <div class="prayer-row" id="imsak-row">
+                <div class="prayer-name">الإمساك</div>
+                <div class="prayer-time" id="imsak-time">--:--</div>
+            </div>
+            
+            <!-- Fajr (مع صلاة) -->
+            <div class="prayer-row" id="fajr-row">
+                <div class="prayer-name">صلاة الفجر</div>
+                <div class="prayer-time" id="fajr-time">--:--</div>
+            </div>
+            
+            <!-- Dhuhr (مع صلاة) -->
+            <div class="prayer-row" id="dhuhr-row">
+                <div class="prayer-name">صلاة الظهر</div>
+                <div class="prayer-time" id="dhuhr-time">--:--</div>
+            </div>
+            
+            <!-- Asr (مع صلاة) -->
+            <div class="prayer-row" id="asr-row">
+                <div class="prayer-name">صلاة العصر</div>
+                <div class="prayer-time" id="asr-time">--:--</div>
+            </div>
+            
+            <!-- Maghrib (مع صلاة) -->
+            <div class="prayer-row" id="maghrib-row">
+                <div class="prayer-name">صلاة المغرب</div>
+                <div class="prayer-time" id="maghrib-time">--:--</div>
+            </div>
+            
+            <!-- Isha (مع صلاة) -->
+            <div class="prayer-row" id="isha-row">
+                <div class="prayer-name">صلاة العشاء</div>
+                <div class="prayer-time" id="isha-time">--:--</div>
+            </div>
+            
+            <!-- Midnight (بدون صلاة) -->
+            <div class="prayer-row" id="midnight-row">
+                <div class="prayer-name">منتصف الليل</div>
+                <div class="prayer-time" id="midnight-time">--:--</div>
+            </div>
+        </div>
+    </div>
+<span id="prayer-notification-btn" class="pray-notification">
+    لتفعيل الإشعارات لأوقات الصلاة، قم بتفعيلها من الإعدادات.
+</span>
+</div>
+     <!-- Categories -->
+                <div id="categories" class="view-section">
+                    <h2 class="page-title">الأقسام</h2>
+                    <div class="categories-grid">
+                        <div onclick="openCategory('رياضة')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1461896836934-ffe607ba8211?q=80&w=2070&auto=format&fit=crop');"></div>
+                            <h3>رياضة</h3>
+                            <p>أحدث النتائج والأخبار الرياضية</p>
+                        </div>
+                        <div onclick="openCategory('اقتصاد')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1665686306578-df6b5eb5dd84?q=80&w=2070&auto=format&fit=crop');"></div>
+                            <h3>اقتصاد</h3>
+                            <p>أسواق المال والأعمال</p>
+                        </div>
+                        <div onclick="openCategory('سياسة')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1575320181282-9afab400332f?q=80&w=2070&auto=format&fit=crop');"></div>
+                            <h3>سياسة</h3>
+                            <p>محلي ودولي</p>
+                        </div>
+                        <div onclick="openCategory('تكنولوجيا')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?q=80&w=2068&auto=format&fit=crop');"></div>
+                            <h3>تكنولوجيا</h3>
+                            <p>أحدث الابتكارات التقنية</p>
+                        </div>
+                        <div onclick="openCategory('ثقافة')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1481627834876-b7833e8f5570?q=80&w=2028&auto=format&fit=crop');"></div>
+                            <h3>ثقافة</h3>
+                            <p>فنون وآداب</p>
+                        </div>
+                        <div onclick="openCategory('صحة')" class="category-card">
+                            <div class="category-icon" style="background-image: url('https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?q=80&w=2070&auto=format&fit=crop');"></div>
+                            <h3>صحة</h3>
+                            <p>نصائح طبية وعلمية</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Detail -->
+                <div id="category-detail" class="view-section">
+                    <div class="category-header">
+                        <h2 id="cat-header-title" class="page-title">اسم القسم</h2>
+                    </div>
+                    <div id="cat-feed-container" class="category-feed-container"></div>
+                </div>
+
+                <!-- Article View -->
+                <div id="article-view" class="view-section article-view">
+                    <div id="article-content"></div>
+                </div>
+
+                <!-- Live TV -->
+                <div id="livetv" class="view-section">
+                    <div id="channel-list-container">
+                        <h2 class="page-title">القنوات المباشرة</h2>
+                        <div class="channels-list">
+                            <!-- HLS Streams -->
+                            <div onclick="openChannel('manar')" class="channel-item">
+                                <div class="channel-info">
+                                    <div class="channel-icon manar">
+                                        <i class="fa-solid fa-satellite-dish"></i>
+                                    </div>
+                                    <div>
+                                        <h3>قناة المنار</h3>
+                                        <p class="live-indicator">● بث مباشر</p>
+                                        <small>يبدأ التشغيل تلقائياً</small>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </div>
+
+                            <div onclick="openChannel('alsirat')" class="channel-item">
+                                <div class="channel-info">
+                                    <div class="channel-icon alsirat">
+                                        <i class="fa-solid fa-globe"></i>
+                                    </div>
+                                    <div>
+                                        <h3>قناة الصراط</h3>
+                                        <p class="live-indicator">● بث مباشر</p>
+                                    </div>
+                                </div>
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Player Container -->
+                    <div id="player-container" class="player-container hidden">
+                        <div class="player-header">
+                            <button onclick="closeChannel()" class="back-to-channels">
+                                <i class="fa-solid fa-arrow-right"></i> القنوات
+                            </button>
+                            <h3 id="player-title" class="player-title">قناة المنار</h3>
+                        </div>
+
+                        <div class="video-wrapper" id="custom-video-wrapper">
+                            <div id="video-loader" class="video-loader hidden">
+                                <div class="loader"></div>
+                                <p>جاري تحميل البث المباشر...</p>
+                            </div>
+
+                            <video id="main-video-player" class="video-player" playsinline muted></video>
+                            <iframe id="main-iframe-player" class="iframe-player" frameborder="0" allowfullscreen></iframe>
+
+                            <div id="custom-controls" class="custom-controls">
+                                <div class="live-badge">
+                                    <span>LIVE</span>
+                                </div>
+                                <div class="controls-panel">
+                                    <div class="controls-row">
+                                        <div class="controls-left">
+                                            <button id="btn-play" class="control-btn">
+                                                <i class="fa-solid fa-pause"></i>
+                                            </button>
+                                            <div class="volume-control">
+                                                <button id="btn-mute" class="control-btn">
+                                                    <i class="fa-solid fa-volume-high"></i>
+                                                </button>
+                                                <input type="range" id="vol-slider" min="0" max="1" step="0.1" value="1" class="volume-slider">
+                                            </div>
+                                        </div>
+                                        <div class="controls-right">
+                                            <button id="btn-fullscreen" class="control-btn">
+                                                <i class="fa-solid fa-expand"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Channel Info -->
+                        <div class="p-4">
+                            <h4 class="text-lg font-bold mb-2"></h4>
+                            <p id="channel-info" class="text-gray-300"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Archive -->
+                <div id="archive" class="view-section">
+                    <h2 class="page-title">الأرشيف</h2>
+                    <p class="page-subtitle">يتم نقل المقالات الأقدم من 7 أيام تلقائياً إلى هنا.</p>
+                    <div id="archive-container" class="archive-container"></div>
+                </div>
+
+                <!-- Contact -->
+                <div id="contact" class="view-section">
+                    <h2 class="page-title">اتصل بنا</h2>
+                    <div class="contact-content">
+                        <div class="contact-section">
+                            <h3><i class="fa-solid fa-users"></i> مجتمعاتنا</h3>
+                            <div class="social-links">
+                                <button onclick="openWhatsAppModal()" class="social-link whatsapp">
+                                    <i class="fa-brands fa-whatsapp"></i>
+                                    <div>
+                                        <strong>مجموعات الواتساب</strong>
+                                        <span>انضم للمناقشات اليومية</span>
+                                    </div>
+                                </button>
+                                <a href="https://t.me/alameennewsnetwork" class="social-link telegram" target="_blank">
+                                    <i class="fa-brands fa-telegram"></i>
+                                    <div>
+                                        <strong>قناة التليجرام</strong>
+                                        <span>أحدث الأخبار مباشرة</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="contact-section">
+                            <h3><i class="fa-solid fa-headset"></i> الدعم</h3>
+                            <div class="support-info">
+                                <div class="support-item">
+                                    <i class="fa-solid fa-phone"></i>
+                                    <div>
+                                        <span>الدعم الفني</span>
+                                        <a href="https://wa.me/+96181628494" class="contact-button">
+                                            <strong dir="ltr">+961 81 628 494</strong>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="support-item">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <div>
+                                        <span>البريد الإلكتروني</span>
+                                        <a href="mailto:alameennewsnetwork@gmail.com" class="contact-button">
+                                            <strong>alameennewsnetwork@gmail.com</strong>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div id="settings" class="view-section">
+                    <h2 class="page-title">الإعدادات</h2>
+                    <div class="settings-section">
+                        <div class="settings-item toggle">
+                            <div class="settings-item-content">
+                                <div class="settings-icon notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </div>
+                                <span>الإشعارات</span>
+                            </div>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="notif-toggle" class="toggle-checkbox"/>
+                                <label for="notif-toggle" class="toggle-label"></label>
+                            </div>
+                        </div>
+
+                                            <div class="settings-item toggle">
+                        <div class="settings-item-content">
+                            <div class="settings-icon mosque">
+                                <i class="fa-solid fa-mosque"></i>
+                            </div>
+                            <span>تذكير أوقات الصلاة</span>
+                        </div>
+                        <div class="toggle-container">
+                            <input type="checkbox" id="prayer-reminder-toggle" class="toggle-checkbox"/>
+                            <label for="prayer-reminder-toggle" class="toggle-label"></label>
+                        </div>
+                    </div>
+
+
+                        <div class="settings-item toggle">
+                            <div class="settings-item-content">
+                                <div class="settings-icon text-size">
+                                    <i class="fa-solid fa-text-height"></i>
+                                </div>
+                                <span>تكبير النص</span>
+                            </div>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="text-toggle" class="toggle-checkbox"/>
+                                <label for="text-toggle" class="toggle-label"></label>
+                            </div>
+                        </div>
+
+                        <div class="settings-item toggle">
+                            <div class="settings-item-content">
+                                <div class="settings-icon language">
+                                    <i class="fa-solid fa-language"></i>
+                                </div>
+                                <span id="language-label">اللغة: العربية</span>
+                            </div>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="lang-toggle" class="toggle-checkbox"/>
+                                <label for="lang-toggle" class="toggle-label"></label>
+                            </div>
+                        </div>
+
+                        <!-- Auto-play setting for Live TV -->
+                        <div class="settings-item toggle">
+                            <div class="settings-item-content">
+                                <div class="settings-icon play">
+                                    <i class="fa-solid fa-play"></i>
+                                </div>
+                                <span>تشغيل تلقائي للبث المباشر</span>
+                            </div>
+                            <div class="toggle-container">
+                                <input type="checkbox" id="autoplay-toggle" class="toggle-checkbox" checked/>
+                                <label for="autoplay-toggle" class="toggle-label"></label>
+                            </div>
+                        </div>
+
+                        <!-- Video Quality -->
+                        <div class="settings-item">
+                            <div class="settings-item-content">
+                                <div class="settings-icon tv">
+                                    <i class="fa-solid fa-tv"></i>
+                                </div>
+                                <span>جودة الفيديو</span>
+                            </div>
+                            <select id="video-quality" class="bg-gray-800 text-white px-3 py-2 rounded-lg">
+                                <option value="auto">تلقائي</option>
+                                <option value="1080">1080p</option>
+                                <option value="720">720p</option>
+                                <option value="480">480p</option>
+                                <option value="360">360p</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="settings-links">
+                        <a href="privacy-policy.html" class="settings-link">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            <span>سياسة الخصوصية</span>
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                        <a href="terms-of-service.html" class="settings-link">
+                            <i class="fa-solid fa-file-contract"></i>
+                            <span>شروط الخدمة</span>
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </a>
+                    </div>
+
+                    <div class="version-info">
+                        <p>الإصدار 1.0.0</p>
+                        <p class="developer">تم التطوير بواسطة mhalimhd</p>
+                        <button onclick="clearCache()" class="cache-btn">مسح الكاش</button>
+                    </div>
+                </div>
+            </main>
+
+                        <!-- Toast for Cache Clear -->
+            <div id="cache-toast" class="toast-container" style="display: none;">
+                <div class="toast-icon"><i class="fa-solid fa-trash-can"></i></div>
+                <div>
+                    <h4 class="toast-title" id="cache-toast-title">مسح الكاش</h4>
+                    <p class="toast-body" id="cache-toast-body">تم مسح الكاش بنجاح</p>
+                </div>
+            </div>
+
+            <!-- Bottom Navigation -->
+            <nav class="bottom-nav">
+                <div class="nav-container">
+                    <button id="nav-home" onclick="switchTab('home')" class="nav-item active">
+                        <i class="fa-solid fa-house"></i>
+                        <span>الرئيسية</span>
+                    </button>
+                    <button id="nav-prayer" onclick="switchTab('prayer-times')" class="nav-item">
+                        <i class="fa-solid fa-mosque"></i>
+                        <span>الصلاة</span>
+                    </button>
+                    <button id="nav-categories" onclick="switchTab('categories')" class="nav-item">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span>الأقسام</span>
+                    </button>
+                    <button id="nav-livetv" onclick="switchTab('livetv')" class="nav-item livetv-btn">
+                        <div class="livetv-icon">
+                            <i class="fa-solid fa-play"></i>
+                        </div>
+                    </button>
+                    <button id="nav-archive" onclick="switchTab('archive')" class="nav-item">
+                        <i class="fa-solid fa-box-archive"></i>
+                        <span>الأرشيف</span>
+                    </button>
+                    <button id="nav-contact" onclick="switchTab('contact')" class="nav-item">
+                        <i class="fa-solid fa-address-book"></i>
+                        <span>اتصل بنا</span>
+                    </button>
+                    <button id="nav-settings" onclick="switchTab('settings')" class="nav-item">
+                        <i class="fa-solid fa-gear"></i>
+                        <span>الإعدادات</span>
+                    </button>
+                </div>
+            </nav>
+
+            <!-- WhatsApp Modal -->
+            <div id="whatsapp-modal" class="modal-overlay hidden">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">مجموعات الواتساب</h3>
+                        <button onclick="closeWhatsAppModal()" class="modal-close">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="whatsapp-groups-list">
+                            <!-- Groups will be populated dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <script>
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+
+    // Example: show a toast or button in your UI
+    console.log("PWA install available");
+});
+
+// Optional: Manual install button logic
+function installApp() {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+        console.log("User choice:", choice);
+        deferredPrompt = null;
+    });
+}
+</script>
+
+
+            <script src="script.js"></script>
+        </body>
+        </html>
